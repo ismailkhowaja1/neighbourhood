@@ -1,4 +1,6 @@
-//hiide and show button to acheive some level of responsiveness
+(function() {
+    'use strict'; // turn on Strict Mode
+    // hide and show button to acheive some level of responsiveness
 $('.hide-search').click(function(){
 	$('#show-location').hide();
 	$('#maps-area').addClass('col-md-12');
@@ -35,38 +37,47 @@ var Item = function(data){
 	}
 };
 
-//use for viewing google maps
-var initMap = function(placeList) {
+var markers = [];
+
+function createMarkers(placeList, map){
 	var locations = [];
 	placeList.forEach(function(item){
-
 		locations.push([item.location().lat(), item.location().lon()]);
-	});
-	if(locations.length > 0)
-	{
-	var map = new google.maps.Map(document.getElementById('map'), {
-		zoom: 15,
-		center: new google.maps.LatLng(locations[0][0], locations[0][1])
 	});
 
 	var marker;
+
 	locations.forEach(function(item){
 		marker = new google.maps.Marker({
 			position: new google.maps.LatLng(item[0], item[1]),
 			map: map
 		});
+		markers.push(marker);
 	});
-	}
-
 };
 
+//use for viewing google maps
+function initMap(placeList) {
+	var map;
+	if(placeList.length > 0)
+	{
+		var map = new google.maps.Map(document.getElementById('map'), {
+			zoom: 15,
+			center: new google.maps.LatLng(placeList[0].location().lat(),placeList[0].location().lon() )
+		});
 
-var viewModel = function(){
+		var markers = createMarkers(placeList, map);
+	}
+	return map;
+};
+
+function viewModel(){
 	var self = this;
 	self.filterVal = ko.observable("");
 	self.nameList = ko.observableArray([]);
 	self.isError = ko.observable(false);
 	self.filteredList = ko.observableArray();
+	var map;
 
 	//four square api url
 	var fromFoursquare =  "https://api.foursquare.com/v2/venues/suggestCompletion?near=winnipeg,MB&";
@@ -81,12 +92,16 @@ var viewModel = function(){
 		data.response.minivenues.forEach(function (item){
 			self.nameList.push(new Item(item));
 		});
+	}).then(function(){
+		self.map = initMap(self.nameList());
 	});
 
+
+
 	//filters the locations according to user input in field
-	showFiltered = ko.computed(function(){
+	self.showFiltered = ko.computed(function(){
 		self.isError(false);
-		if(self.filterVal() != ""){
+		if(self.filterVal() !== ""){
 			//remove all the filtered list if anything new typed
 			self.filteredList.removeAll();
 			//names were matched with user input will be filtered lit
@@ -97,7 +112,6 @@ var viewModel = function(){
 			});
 			//if something was added then show names with markers
 			if(self.filteredList().length > 0){
-				initMap(self.filteredList());
 				return self.filteredList();
       }
 			//show error
@@ -107,10 +121,12 @@ var viewModel = function(){
 		}
 		else{
 			//if nothing was in the input box then all names were shown
-			initMap(self.nameList());
 			return self.nameList();
     }
 	});
 };
 
 ko.applyBindings(new viewModel());
+}()); // end of file
+Refer
+
