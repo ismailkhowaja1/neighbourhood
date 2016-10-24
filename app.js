@@ -23,13 +23,15 @@ $('.show-search').click(function(){
 var Item = function(data){
 	if( ko.isObservable(data.name)){
 		this.name = ko.observable(data.name());
+		var	marker; 
 		this.location = ko.observable( {
 			lat: ko.observable(data.location().lat()),
-			lon: ko.observable(data.location().lon())
+			lon: ko.observable(data.location().lon()),
 		});
 
 	}else{
 		this.name = ko.observable(data.name);
+		var marker;
 		this.location = ko.observable( {
 			lat: ko.observable(data.location.lat),
 			lon: ko.observable(data.location.lng)
@@ -39,20 +41,13 @@ var Item = function(data){
 
 var markers = [];
 
+
 function createMarkers(placeList, map){
-	var locations = [];
 	placeList.forEach(function(item){
-		locations.push([item.location().lat(), item.location().lon()]);
-	});
-
-	var marker;
-
-	locations.forEach(function(item){
-		marker = new google.maps.Marker({
-			position: new google.maps.LatLng(item[0], item[1]),
+		item.marker = new google.maps.Marker({
+			position: new google.maps.LatLng(item.location().lat(), item.location().lon()),
 			map: map
 		});
-		markers.push(marker);
 	});
 };
 
@@ -69,6 +64,16 @@ function initMap(placeList) {
 		var markers = createMarkers(placeList, map);
 	}
 	return map;
+};
+
+function showAllMarker (placeList) {
+	if(placeList.length > 0){
+		placeList.forEach(function (item) {
+			if(item.marker){
+				item.marker.setVisible(true);
+			}
+		})
+	}
 };
 
 function viewModel(){
@@ -94,8 +99,8 @@ function viewModel(){
 		});
 	}).then(function(){
 		self.map = initMap(self.nameList());
+		console.log("when");
 	});
-
 
 
 	//filters the locations according to user input in field
@@ -106,23 +111,26 @@ function viewModel(){
 			self.filteredList.removeAll();
 			//names were matched with user input will be filtered lit
 			self.nameList().forEach(function(item){
-        if (item.name().toLowerCase().indexOf(self.filterVal().toLowerCase()) != -1) {
-          self.filteredList.push(new Item(item));
-        }
+		        if (item.name().toLowerCase().indexOf(self.filterVal().toLowerCase()) != -1) {
+		          	self.filteredList.push(new Item(item));
+		          	item.marker.setVisible(true);
+		        }else{
+		        	item.marker.setVisible(false);
+		        }
 			});
 			//if something was added then show names with markers
 			if(self.filteredList().length > 0){
 				return self.filteredList();
-      }
+      		}
 			//show error
 			else{
 				self.isError(true);
-      }
+      		}
 		}
-		else{
-			//if nothing was in the input box then all names were shown
-			return self.nameList();
-    }
+		else{//if nothing was in the input box then all names were shown
+				showAllMarker(self.nameList());
+				return self.nameList();
+    		}
 	});
 };
 
