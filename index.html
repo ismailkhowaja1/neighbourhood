@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Neighbour hood</title>
+	<link rel="stylesheet" href="bower_components\bootstrap\dist\css\bootstrap.min.css">
+	<link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+	<h1 class="text-center">Neighbor Hood app</h1>
+
+	<main>
+			<div class="container">
+				<div class="row">
+					<div id="show-location" class="col-md-4 col-sm-4 col-xs-5">
+						<div id="search-area">
+							<button type="button" class="btn btn-primary hide-search">Hide</button>
+							<div class="search-header">
+								<h3>Bart Locations</h3>
+							</div>
+
+							<div class="input-bar">
+									<div class="form-group form-inline" data-bind="submit: showFiltered">
+										<input class="form-control" data-bind="value: filterVal" />
+										<button class="btn btn-primary form-control"type="submit">
+											Filter
+										</button>
+									</div>
+
+									<div data-bind="foreach: showFiltered" class="entries">
+										<p class="list-item" data-bind="text: name"></p>
+									</div>
+									<p data-bind="if: isError">No results found</p>
+							</div>
+						</div>
+					</div>
+
+					<div id="maps-area" class="col-sm-8 col-xs-7">
+						<button type="button" class="btn btn-primary hide show-search">show</button>
+						<h2>maps area</h2>
+						<div id="map">
+
+						</div>
+					</div>
+				</div>
+			</div>
+	</main>
+
+	<script src="bower_components\jquery\dist\jquery.min.js"></script>
+	<script src="bower_components\bootstrap\dist\js\bootstrap.min.js"></script>
+	<script src="bower_components\knockout\dist\knockout.js"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDr4UIda1qu2tqvuPTyH8901r-KMHEx0wU"></script>
+	<script src="app.js"></script>
+</body>
+</html>
