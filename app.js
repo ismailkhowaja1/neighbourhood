@@ -23,7 +23,9 @@ $('.show-search').click(function(){
 var Item = function(data){
 	if( ko.isObservable(data.name)){
 		this.name = ko.observable(data.name());
-		var	marker; 
+		this.address = ko.observable(data.location.address);
+		var	marker;
+		var infowindow;
 		this.location = ko.observable( {
 			lat: ko.observable(data.location().lat()),
 			lon: ko.observable(data.location().lon()),
@@ -31,7 +33,11 @@ var Item = function(data){
 
 	}else{
 		this.name = ko.observable(data.name);
+		this.address = ko.observable(data.location.address
+		 + "\n " + data.location.crossStreet +
+		  ", Postal code: "+ data.location.postalCode);
 		var marker;
+		var infowindow;
 		this.location = ko.observable( {
 			lat: ko.observable(data.location.lat),
 			lon: ko.observable(data.location.lng)
@@ -39,16 +45,27 @@ var Item = function(data){
 	}
 };
 
-var markers = [];
+var markersList = [];
 
 
 function createMarkers(placeList, map){
+	var index = 0;
 	placeList.forEach(function(item){
 		item.marker = new google.maps.Marker({
+			id:index,
 			position: new google.maps.LatLng(item.location().lat(), item.location().lon()),
+			animation: google.maps.Animation.DROP,
 			map: map
 		});
+		item.infowindow = new google.maps.InfoWindow({
+          content: item.address()
+        });
+		markersList.push(item.marker);
+		index = index + 1;
 	});
+
+
+
 };
 
 //use for viewing google maps
@@ -61,7 +78,9 @@ function initMap(placeList) {
 			center: new google.maps.LatLng(placeList[0].location().lat(),placeList[0].location().lon() )
 		});
 
-		var markers = createMarkers(placeList, map);
+		createMarkers(placeList, map);
+
+
 	}
 	return map;
 };
@@ -71,18 +90,39 @@ function showAllMarker (placeList) {
 		placeList.forEach(function (item) {
 			if(item.marker){
 				item.marker.setVisible(true);
+
 			}
 		})
 	}
 };
+
+
 
 function viewModel(){
 	var self = this;
 	self.filterVal = ko.observable("");
 	self.nameList = ko.observableArray([]);
 	self.isError = ko.observable(false);
+	self.jsonError = ko.observable(false);
 	self.filteredList = ko.observableArray();
 	var map;
+	
+	self.doAnimate = function(clickedItem){
+		var timeout = 200;
+		if(clickedItem.marker){
+			if(clickedItem.marker.getAnimation() !== null){
+				clickedItem.marker.setAnimation(null);
+			}else{
+				clickedItem.marker.setAnimation(google.maps.Animation.BOUNCE);
+				clickedItem.infowindow.open(map, clickedItem.marker);
+				setTimeout(function () {
+        			clickedItem.marker.setAnimation(null);
+    			}, 1000);
+			}
+		}
+	};
+	
+	
 
 	//four square api url
 	var fromFoursquare =  "https://api.foursquare.com/v2/venues/suggestCompletion?near=winnipeg,MB&";
@@ -92,6 +132,7 @@ function viewModel(){
 	var v = "v=20161020";
 	var url = fromFoursquare+find+client_id+client_secret+v;
 
+
 	//get data from foursquare api and put the places in namelist
 	$.getJSON(url, function(data) {
 		data.response.minivenues.forEach(function (item){
@@ -99,9 +140,9 @@ function viewModel(){
 		});
 	}).then(function(){
 		self.map = initMap(self.nameList());
-		console.log("when");
-	});
-
+	}).fail(function(){
+		self.jsonError(true);
+	})
 
 	//filters the locations according to user input in field
 	self.showFiltered = ko.computed(function(){
@@ -115,11 +156,13 @@ function viewModel(){
 		          	self.filteredList.push(new Item(item));
 		          	item.marker.setVisible(true);
 		        }else{
+		        	item.infowindow.close();
 		        	item.marker.setVisible(false);
 		        }
 			});
 			//if something was added then show names with markers
 			if(self.filteredList().length > 0){
+				createMarkers(self.filteredList(), map);
 				return self.filteredList();
       		}
 			//show error

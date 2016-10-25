@@ -12,6 +12,7 @@
 <body>
 	<header>
 			<h1 class="text-center">Neighbor Hood app</h1>
+			<h1 class="text-center" data-bind="if: jsonError">Something went wrong on our side</h1>
 	</header>
 
 	<div class="container">
@@ -33,7 +34,7 @@
 								</div>
 
 								<div data-bind="foreach: showFiltered" class="entries">
-									<p class="list-item" data-bind="text: name"></p>
+									<p class="list-item" data-bind="text: name, click: $parent.doAnimate"></p>
 								</div>
 								<p data-bind="if: isError">No results found</p>
 						</div>
