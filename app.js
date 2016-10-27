@@ -31,12 +31,16 @@ var Item = function(data){
 		});
 
 	}else{
-		this.name = ko.observable(data.name  + " - " + data.location.address);
-		var postalCodes = data.location.postalCode;
-		if (postalCodes == null){
-			postalCodes = "Not provided";
+		var addr = data.location.address;
+		if (addr == null){
+			addr = "Address Not provided by fourSquare API";
 		}
-		this.address = ko.observable(data.location.address + "\n " + data.location.crossStreet + ", Postal code: "+ postalCodes);
+		this.name = ko.observable(data.name  + " - " + addr);
+		var crossStr = data.location.crossStreet;
+		var postalCodes = data.location.postalCode;
+		if (postalCodes == null){postalCodes = "Not provided";}
+		if (crossStr == null){crossStr = "";}
+		this.address = ko.observable(addr + "\n " + crossStr + ", Postal code: "+ postalCodes);
 		var marker;
 		var infowindow;
 		this.location = ko.observable( {
@@ -62,16 +66,9 @@ function createMarkers(placeList, map){
 			animation: google.maps.Animation.DROP,
 			map: map
 		});
-		item.infowindow = new google.maps.InfoWindow({
-          content: item.address()
-        });
+		infowindow.marker = item.marker;
 
         item.marker.addListener('click', function() {
-        	vm.nameList().forEach(function(item){
-        		if(item.infowindow !== null){
-        			item.infowindow.close();
-        		}
-        	})
         	vm.doAnimate(item);
         });
         bounds.extend(item.marker.position);
@@ -96,11 +93,34 @@ function showAllMarker (placeList) {
 		placeList.forEach(function (item) {
 			if(item.marker){
 				item.marker.setVisible(true);
-
+				item.showMe(true);
 			}
 		});
 	}
 }
+
+var activeWindow;
+self.doAnimate = function(clickedItem){
+	var timeout = 700;
+	if (activeWindow != null){
+		activeWindow.close();
+	}
+	if(clickedItem.marker){
+		if(clickedItem.marker.getAnimation() !== null){
+			clickedItem.marker.setAnimation(null);
+		}else{
+			clickedItem.marker.setAnimation(google.maps.Animation.BOUNCE);
+			activeWindow = clickedItem.infowindow;
+			infowindow.setContent(clickedItem.address());
+			infowindow.open(map, clickedItem.marker);
+			setTimeout(function () {
+    			clickedItem.marker.setAnimation(null);
+			}, timeout);
+		}
+	}
+};
+
+
 
 
 
@@ -111,29 +131,7 @@ function viewModel(){
 	self.isError = ko.observable(false);
 	self.jsonError = ko.observable(false);
 	self.filteredList = ko.observableArray();
-	
-	self.doAnimate = function(clickedItem){
-		var timeout = 200;
-		if(clickedItem.marker){
-			if(clickedItem.marker.getAnimation() !== null){
-				clickedItem.marker.setAnimation(null);
-			}else{
-				clickedItem.marker.setAnimation(google.maps.Animation.BOUNCE);
-				vm.nameList().forEach(function (item){
-					if(item.infowindow != null){
-						item.infowindow.close();
-					}
-				})
-				clickedItem.infowindow.open(map, clickedItem.marker);
-				setTimeout(function () {
-        			clickedItem.marker.setAnimation(null);
-    			}, 1000);
-			}
-		}
-	};
-	
-	
-
+		
 	//four square api url
 	var fromFoursquare =  "https://api.foursquare.com/v2/venues/suggestCompletion?near=winnipeg,MB&";
 	var find = "query=starbucks";
@@ -141,6 +139,27 @@ function viewModel(){
 	var client_secret = "client_secret=B4DOCE1DROPQT3WMDOTNB0KUUP0EDIJGA1QIFG5O0H0INB1K&";
 	var v = "v=20161020";
 	var url = fromFoursquare+find+client_id+client_secret+v;
+
+	var activeWindow;
+	self.doAnimate = function(clickedItem){
+		var timeout = 700;
+		if (activeWindow != null){
+			activeWindow.close();
+		}
+		if(clickedItem.marker){
+			if(clickedItem.marker.getAnimation() !== null){
+				clickedItem.marker.setAnimation(null);
+			}else{
+				clickedItem.marker.setAnimation(google.maps.Animation.BOUNCE);
+				activeWindow = clickedItem.infowindow;
+				infowindow.setContent(clickedItem.address());
+				infowindow.open(map, clickedItem.marker);
+				setTimeout(function () {
+        			clickedItem.marker.setAnimation(null);
+    			}, timeout);
+			}
+		}
+	};
 
 
 	//get data from foursquare api and put the places in namelist
@@ -165,7 +184,7 @@ function viewModel(){
 		          	item.showMe(true);
 		          	item.marker.setVisible(true);
 		        } else {
-		        	item.infowindow.close();
+		        	infowindow.close();
 		        	item.showMe(false);
 		        	item.marker.setVisible(false);
 		        	count++;
