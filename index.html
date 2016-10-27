@@ -11,7 +11,7 @@
 
 	<body>
 		<header>
-			<h1 class="text-center">Neighbor Hood app</h1>
+			<h1 class="text-center">starBucks location App</h1>
 			<h1 class="text-center" data-bind="if: jsonError">Something went wrong on our side</h1>
 		</header>
 
@@ -22,7 +22,7 @@
 						<div id="search-area">
 							<button type="button" class="btn btn-primary hide-search">Hide</button>
 							<div class="search-header">
-								<h3>Bart Locations</h3>
+								<h3>filter Locations</h3>
 							</div>
 
 							<div class="input-bar">
@@ -33,8 +33,8 @@
 									</button>
 								</div>
 
-								<div data-bind="foreach: showFiltered" class="entries">
-									<p class="list-item" data-bind="text: name, click: $parent.doAnimate"></p>
+								<div data-bind="foreach: nameList" class="entries">
+									<p class="list-item" data-bind="text: name, click: $parent.doAnimate, visible: showMe"></p>
 								</div>
 								<p data-bind="if: isError">No results found</p>
 							</div>
@@ -59,6 +59,6 @@
 	<script src="bower_components/knockout/dist/knockout.js"></script>
 	
 	<script src="app.js"></script>
-	<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDr4UIda1qu2tqvuPTyH8901r-KMHEx0wU&callback=initMap"></script>
+	<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDr4UIda1qu2tqvuPTyH8901r-KMHEx0wU&callback=initMap" onerror="googleError()"></script>
 	</body>
 </html>
