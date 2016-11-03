@@ -135,8 +135,8 @@ function viewModel(){
 	//four square api url
 	var fromFoursquare =  "https://api.foursquare.com/v2/venues/suggestCompletion?near=winnipeg,MB&";
 	var find = "query=starbucks";
-	var client_id = "&client_id=JLJ4QQ1LQ1QDJTXB55TJERDREOJEVYRVIDRAD34PXTBCRQYW&";
-	var client_secret = "client_secret=B4DOCE1DROPQT3WMDOTNB0KUUP0EDIJGA1QIFG5O0H0INB1K&";
+	var client_id = "Security reasons, you have to replace with yours";
+	var client_secret = "Security reasons";
 	var v = "v=20161020";
 	var url = fromFoursquare+find+client_id+client_secret+v;
 
